@@ -33,20 +33,51 @@ on:
   workflow_dispatch:
 
 jobs:
-  Analysis:
+  Backend-Analysis:
+    name: Backend Analysis
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Analyze with SonarQube
+      - name: Analyze Backend with SonarQube
         uses: SonarSource/sonarqube-scan-action@v1.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=student-backend
-            -Dsonar.projectName="Student Backend"
-            -Dsonar.projectBaseDir=backend
+            -Dsonar.projectKey=ems-backend
+            -Dsonar.projectName="EMS Backend"
+            -Dsonar.projectBaseDir=ems-backend
+
+  Frontend-Analysis:
+    name: Frontend Analysis
+    runs-on: ubuntu-latest
+    needs: Backend-Analysis
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install frontend dependencies
+        working-directory: ems-frontend
+        run: npm install
+
+      - name: Analyze Frontend with SonarQube
+        uses: SonarSource/sonarqube-scan-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=ems-frontend
+            -Dsonar.projectName="EMS Frontend"
+            -Dsonar.projectBaseDir=ems-frontend
+            -Dsonar.sources=src
